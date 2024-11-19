@@ -1,36 +1,125 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Centralized Authentication System: Documentation
 
-## Getting Started
+## Project Overview
 
-First, run the development server:
+A centralized authentication system using **Next.js** and **MySQL** to manage user authentication for multiple external projects.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Key Features
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+### Login/Registration Redirection
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- External projects redirect users to `auth.example.com` with a `callbackUrl`.
+  - Example: `auth.example.com/login?callbackUrl=https://dashboard.app2.com`.
+- The system checks if the `callbackUrl` is registered in the database.
 
-## Learn More
+### Token-Based Authentication
 
-To learn more about Next.js, take a look at the following resources:
+- After successful login/registration, a token is generated and sent back to the external project.
+  - Example: `https://dashboard.app2.com/auth/callback?token=abc123`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### API Authentication
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- External projects call APIs with:
+  - `token` (query parameter).
+  - `x-client-apikey` (header).
+- The API verifies the `apikey` and token, then returns user data.
 
-## Deploy on Vercel
+### Session Management
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Manage user sessions, token validation, and expiration.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## Database Design
+
+### 1. Users Table
+
+Stores user information.
+
+| Field       | Type        | Description               |
+| ----------- | ----------- | ------------------------- |
+| `id`        | Primary Key | Unique identifier         |
+| `email`     | String      | User email (unique)       |
+| `image`     | String      | User image                |
+| `password`  | String      | Hashed password           |
+| `createdAt` | Timestamp   | Record creation timestamp |
+| `updatedAt` | Timestamp   | Last update timestamp     |
+
+..other fields
+
+### 2. Domains Table
+
+Stores information about external projects.
+
+| Field       | Type        | Description                              |
+| ----------- | ----------- | ---------------------------------------- |
+| `id`        | Primary Key | Unique identifier                        |
+| `name`      | String      | Project name                             |
+| `domain`    | String      | Domain name (e.g., `dashboard.app2.com`) |
+| `apikey`    | String      | Unique key for the domain                |
+| `createdAt` | Timestamp   | Record creation timestamp                |
+| `updatedAt` | Timestamp   | Last update timestamp                    |
+
+---
+
+## API Endpoints
+
+### 1. Login/Register
+
+- **Endpoint**: `POST /login`
+- **Parameters**:
+  - `email`
+  - `password`
+  - `callbackUrl` (Query)
+- **Response**: Redirect to `callbackUrl` with a token.
+
+---
+
+### 2. Validate Token
+
+- **Endpoint**: `GET /validate-token`
+- **Headers**:
+  - `x-client-apikey`
+- **Query Parameters**:
+  - `token`
+- **Response**:
+  - `200 OK`: User data.
+  - `401 Unauthorized`: Invalid token or `apikey`.
+
+---
+
+## Flow
+
+### Redirection
+
+1. User navigates to `auth.example.com/login?callbackUrl=https://dashboard.app2.com`.
+2. The `callbackUrl` is validated against the **Domains** table.
+
+### Authentication
+
+1. User logs in/registers at `auth.example.com`.
+2. A token is generated, stored in the database, and sent to the `callbackUrl`.
+
+### API Validation
+
+1. External projects use APIs to validate tokens using `x-client-apikey`.
+2. The system matches the `apikey` and verifies the token.
+
+---
+
+## Token Management
+
+- Tokens are stored in a `tokens` table with attributes:
+  - `id`, `userId`, `token`, `createdAt`, `expiresAt`.
+- Expired tokens are invalidated automatically.
+
+---
+
+## Security Measures
+
+1. Hash sensitive data (e.g., passwords, tokens).
+2. Use **HTTPS** for all communications.
+3. Limit token validity with expiration timestamps.
+4. Validate `x-client-apikey` to prevent unauthorized access.
