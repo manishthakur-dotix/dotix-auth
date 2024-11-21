@@ -55,14 +55,10 @@ export async function POST(req, res) {
     sendWelcomeEmail(email, name, token);
 
     // Call the stored procedure
-    const [result] = await db.query(`CALL sp_CreateAccount(?, ?, ?, ?, ?, ?)`, [
-      name,
-      email,
-      null,
-      hashedPass,
-      "email",
-      token,
-    ]);
+    const [result] = await db.query(
+      `CALL sp_CreateAccount(?, ?, ?, ?, ?, ?, ?)`,
+      [name, email, null, 0, hashedPass, "email", token]
+    );
 
     return NextResponse.json(
       { msg: "Account Created Successfully. Verify your email" },

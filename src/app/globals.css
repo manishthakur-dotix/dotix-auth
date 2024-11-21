@@ -15,7 +15,7 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 213.3, 42.9%, 95.9%;
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
@@ -41,7 +41,7 @@
 @layer base {
   [data-theme="apploft"] {
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 213.3, 42.9%, 95.9%;
     --primary: 200 70% 50%;
     --secondary: 210 50% 80%;
     /* Custom variables for app2 */
@@ -52,7 +52,7 @@
 @layer base {
   [data-theme="humix"] {
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 213.3, 42.9%, 95.9%;
     --primary: 180, 100%, 25%;
     --secondary: 220 50% 70%;
     /* Custom variables for app3 */
@@ -63,7 +63,7 @@
 @layer base {
   [data-theme="duddy"] {
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 213.3, 42.9%, 95.9%;
     --primary: 246, 55%, 54%;
     --secondary: 220 50% 70%;
     /* Custom variables for app3 */
@@ -77,4 +77,44 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* --------------------------- Input box --------------------------- */
+
+.inputContainer {
+  position: relative;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.label {
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  transform: translateY(-50%);
+  font-size: 16px;
+  color: #aaa;
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
+
+.activeLabel {
+  top: 0;
+  font-size: 12px;
+  color: var(--primary);
+}
+
+.input {
+  width: 100%;
+  padding: 10px;
+  padding-top: 20px; /* For space under the label */
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.input:focus {
+  border-color: var(--primary);
 }

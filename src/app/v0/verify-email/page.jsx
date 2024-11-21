@@ -29,7 +29,7 @@ const VerifyEmail = () => {
         );
         console.log(response);
         toast.success(response?.data?.msg);
-        router.push("/auth/signin");
+        router.push("/v0/signin");
       } catch (error) {
         console.log(error);
         if (error?.response?.data?.msg === "Invalid or expired token") {
@@ -81,7 +81,7 @@ const Page = () => {
     <Suspense
       fallback={
         <div className="flex items-center justify-center h-[100vh]">
-          <Loader2 className="h-5 w-5 animate-spin" />
+          <Loader2 className="h-8 w-8 animate-spin text-gray-800" />
         </div>
       }
     >
