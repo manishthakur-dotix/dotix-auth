@@ -35,7 +35,7 @@ export async function GET(req) {
       // If no matching record is found, return an error
       return NextResponse.json(
         { message: "Invalid API key or source" },
-        { status: 401 }
+        { status: 403 }
       );
     }
 
@@ -47,38 +47,18 @@ export async function GET(req) {
 
     if (session.length === 0) {
       return NextResponse.json(
-        { message: "Session not found" },
+        { message: "Session has been expired." },
         { status: 404 }
       );
     }
 
-    // Step 4: Check if the session has expired by comparing the current time with the expiry_date
-    const currentTime = new Date();
-    const expiryTime = new Date(session[0].expiry_date);
-
-    if (currentTime > expiryTime) {
-      return NextResponse.json(
-        { message: "Session has been expired" },
-        { status: 401 }
-      );
-    }
-
-    const userId = session[0].user_id;
-
-    const [user] = await db.query(
-      `SELECT name, email, image, auth_provider FROM t_users WHERE id = ?`,
-      [userId]
+    await db.query(
+      `UPDATE t_sessions set expiry_date = now() WHERE session_id = ?`,
+      [sessionId]
     );
 
-    const userData = {
-      ...user[0],
-      ip: session[0].ip,
-      location: session[0]?.location,
-      device: session[0]?.device,
-    };
-
     // Step 3: Proceed with the rest of the logic (e.g., verify session, etc.)
-    return NextResponse.json({ user: userData }, { status: 200 });
+    return NextResponse.json({ msg: "Signout Successfully" }, { status: 200 });
   } catch (error) {
     console.error("Error during API key validation:", error);
     return NextResponse.json(

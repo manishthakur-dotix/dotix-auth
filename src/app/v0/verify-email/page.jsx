@@ -2,7 +2,8 @@
 
 import { Button } from "@/components/ui/button";
 import axios from "axios";
-import { Loader2 } from "lucide-react";
+import Cookies from "js-cookie";
+import { CookingPot, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { Suspense, useEffect, useState } from "react";
@@ -11,6 +12,7 @@ import toast from "react-hot-toast";
 const VerifyEmail = () => {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
+  const source = Cookies.get("source") || "";
   const router = useRouter();
   const [loadingPage, setLoadingPage] = useState(true);
   const [error, setError] = useState(null);
@@ -29,7 +31,7 @@ const VerifyEmail = () => {
         );
         console.log(response);
         toast.success(response?.data?.msg);
-        router.push("/v0/signin");
+        router.push(`/v0/signin?source=${source}`);
       } catch (error) {
         console.log(error);
         if (error?.response?.data?.msg === "Invalid or expired token") {
