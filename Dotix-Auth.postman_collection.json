@@ -1,0 +1,84 @@
+{
+	"info": {
+		"_postman_id": "042364ad-62de-4dc7-9c6d-6627ec8a478b",
+		"name": "Dotix-Auth",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "34617113"
+	},
+	"item": [
+		{
+			"name": "http://localhost:3000/api/auth/signout?sessionId=f937891a9b7875aecb6f1ed841217414&source=dashboard.apploft.in",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "x-api-key",
+						"value": "59cd1f71-49c2-4117-873e-b19b1ab9a7ae",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:3000/api/auth/signout?sessionId=f937891a9b7875aecb6f1ed841217414&source=dashboard.apploft.in",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"auth",
+						"signout"
+					],
+					"query": [
+						{
+							"key": "sessionId",
+							"value": "f937891a9b7875aecb6f1ed841217414"
+						},
+						{
+							"key": "source",
+							"value": "dashboard.apploft.in"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "http://localhost:3000/api/auth/verify-session?sessionId=f937891a9b7875aecb6f1ed841217414&source=dashboard.apploft.in",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "x-api-key",
+						"value": "59cd1f71-49c2-4117-873e-b19b1ab9a7ae",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:3000/api/auth/verify-session?sessionId=f937891a9b7875aecb6f1ed841217414&source=dashboard.apploft.in",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"auth",
+						"verify-session"
+					],
+					"query": [
+						{
+							"key": "sessionId",
+							"value": "f937891a9b7875aecb6f1ed841217414"
+						},
+						{
+							"key": "source",
+							"value": "dashboard.apploft.in"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
