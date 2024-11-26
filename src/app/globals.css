@@ -118,3 +118,35 @@
 .input:focus {
   border-color: var(--primary);
 }
+
+/* Style for markup pages */
+
+#legal {
+  color: #1e1e1e;
+}
+#legal h1,
+#legal h2,
+#legal h3,
+#legal h4,
+#legal h5,
+#legal h3 {
+  font-size: 1.5rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.8rem;
+}
+#legal h4 {
+  font-size: 1.2rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.8rem;
+}
+#legal p,
+#legal li {
+  font-size: 1rem;
+  margin: 12px 0;
+  word-break: break-all;
+}
+
+#legal ul {
+  list-style: disc;
+  list-style-position: inside;
+}

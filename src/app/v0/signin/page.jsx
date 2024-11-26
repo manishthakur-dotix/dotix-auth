@@ -1,12 +1,14 @@
 "use client";
 
 import Input from "@/components/common/Input";
+import SourceInfo from "@/components/common/SourceInfo";
+import SourceNotListed from "@/components/common/SourceNotListed";
 import { Button } from "@/components/ui/button";
 import axios from "axios";
 import { AlertCircleIcon, ViewIcon, ViewOffSlashIcon } from "hugeicons-react";
 import Cookies from "js-cookie";
 import { Loader2 } from "lucide-react";
-import { signIn } from "next-auth/react";
+import { signIn, signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -18,7 +20,7 @@ const SignIn = () => {
   const searchParams = useSearchParams();
   const source = searchParams.get("source");
 
-  Cookies.set("source", source, { path: "/", sameSite: "strict" });
+  const { data, status } = useSession();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,46 +29,64 @@ const SignIn = () => {
   const [domainData, setDomainData] = useState(null);
   const [error, setError] = useState(null);
 
+  const [signOutExecuted, setSignOutExecuted] = useState(false);
   const [loadingPage, setLoadingPage] = useState(true);
   const [continueWithEmail, setContinueWithEmail] = useState(false);
 
   useEffect(() => {
-    const getDomainInfo = async () => {
-      try {
-        const response = await axios.get(
-          `/api/auth/verify-domain?domain=${source}`
-        );
+    if (status === "authenticated") {
+      // If the user is authenticated and source matches, redirect to home page
+      if (source === Cookies.get("source") && data?.user?.sessionId) {
+        router.push("/");
+      } else {
+        // Prevent multiple sign-out calls
+        if (!signOutExecuted) {
+          setSignOutExecuted(true); // Mark that we have executed sign-out
 
-        setDomainData(response?.data?.domain);
+          const getDomainInfo = async () => {
+            try {
+              const response = await axios.get(
+                `/api/auth/verify-domain?domain=${source}`
+              );
 
-        // Get theme from domain info and set it in cookies
-        const theme = response?.data?.domain?.theme || "default";
-        Cookies.set("theme", theme, { path: "/", sameSite: "strict" });
-        Cookies.set("callback", response?.data?.domain?.callback, {
-          path: "/",
-          sameSite: "strict",
-        });
+              setDomainData(response?.data?.domain);
 
-        // Apply the theme dynamically
-        document.documentElement.setAttribute("data-theme", theme);
+              // Get theme from domain info and set it in cookies
+              const theme = response?.data?.domain?.theme || "default";
 
-        setLoadingPage(false);
-      } catch (error) {
-        setLoadingPage(false);
-        console.log(error);
-        if (error.response) {
-          if (error?.response?.data?.msg === "Invalid domain") {
-            setError("Invalid domain");
-          }
-          toast.error(error?.response?.data?.msg);
+              Cookies.set("source", source, { path: "/" });
+              Cookies.set("theme", theme, { path: "/" });
+              Cookies.set("callback", response?.data?.domain?.callback, {
+                path: "/",
+              });
+
+              // Apply the theme dynamically
+              document.documentElement.setAttribute("data-theme", theme);
+
+              // Sign out the user manually without redirecting
+              signOut({ redirect: false });
+
+              setLoadingPage(false);
+            } catch (error) {
+              setLoadingPage(false);
+              console.log(error);
+              if (error.response) {
+                if (error?.response?.data?.msg === "Invalid domain") {
+                  setError("Invalid domain");
+                }
+                toast.error(error?.response?.data?.msg);
+              }
+            }
+          };
+
+          getDomainInfo();
         }
       }
-    };
+    } else {
+      setLoadingPage(false); // Stop loading if not authenticated
+    }
+  }, [source, data, status]); // Added `status` to dependency to monitor session state
 
-    getDomainInfo();
-  }, [source]);
-
-  // Google sign-in handler
   const handleGoogleSignIn = async () => {
     try {
       const result = await signIn("google", {
@@ -132,10 +152,12 @@ const SignIn = () => {
   };
 
   if (error) {
-    return (
+    return error === "Invalid domain" ? (
+      <SourceNotListed />
+    ) : (
       <div className="flex items-center justify-center h-[100vh] flex-col gap-6 text-lg text-gray-800">
         <AlertCircleIcon className="h-10 w-10 text-red-600" />
-        {error === "Invalid domain" ? <>Source is not listed.</> : <>{error}</>}
+        {error}
       </div>
     );
   }
@@ -163,7 +185,14 @@ const SignIn = () => {
               Sign in
             </h2>
             <p className="mt-2 md:mt-4 text-gray-600">
-              Access your {domainData?.name} account
+              Sign in to your{" "}
+              <SourceInfo
+                name={domainData?.name}
+                email={domainData?.email}
+                phone={domainData?.phone}
+                source={source}
+              />{" "}
+              account
             </p>
           </div>
 
@@ -276,9 +305,15 @@ const SignIn = () => {
         </div>
 
         <div className="flex items-center justify-end mt-6 text-gray-500 gap-6 text-sm pr-5">
-          <p>Privacy</p>
-          <p>Cookie Policy</p>
-          <p>Terms</p>
+          <Link href={"/privacy-policy"}>
+            <p>Privacy</p>
+          </Link>
+          <Link href={"/cookie-policy"}>
+            <p>Cookie Policy</p>
+          </Link>
+          <Link href={"/terms"}>
+            <p>Terms</p>
+          </Link>
         </div>
       </div>
     </div>

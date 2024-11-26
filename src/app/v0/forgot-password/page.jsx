@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import axios from "axios";
 import { Loader2 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import React, { Suspense, useState } from "react";
 import toast from "react-hot-toast";
 
@@ -74,9 +75,15 @@ const ForgotPassword = () => {
         </div>
 
         <div className="flex items-center justify-end mt-6 text-gray-500 gap-6 text-sm pr-5">
-          <p>Privacy</p>
-          <p>Cookie Policy</p>
-          <p>Terms</p>
+          <Link href={"/privacy-policy"}>
+            <p>Privacy</p>
+          </Link>
+          <Link href={"/cookie-policy"}>
+            <p>Cookie Policy</p>
+          </Link>
+          <Link href={"/terms"}>
+            <p>Terms</p>
+          </Link>
         </div>
       </div>
     </div>

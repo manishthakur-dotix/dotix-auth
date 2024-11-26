@@ -4,9 +4,10 @@ import NextAuth from "next-auth/next";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import GitHubProvider from "next-auth/providers/github";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import db from "@/lib/db";
-import { getLocationFromIP } from "@/lib/getLocationFromIP";
+import { getLocationData } from "@/lib/getLocationFromIP";
+import { UAParser } from "ua-parser-js";
 
 // Define your custom PREFIX and SUFFIX
 const PREFIX = process.env.PASS_PREFIX;
@@ -21,6 +22,23 @@ const hashPassword = (password) => {
 // Helper function to generate an UUID
 const generateUUID = () => {
   return crypto.createHash("md5").update(crypto.randomUUID()).digest("hex");
+};
+
+// Function to get the info of device, browser from headers
+const getDeviceAndBrowser = (headersList) => {
+  const userAgent = headersList.get("user-agent");
+
+  // Parse the User-Agent string using UAParser
+  const parser = new UAParser(userAgent);
+  const browser = parser.getBrowser(); // Get browser info (name and version)
+  const device = parser.getDevice(); // Get device info (type, vendor, model)
+  const os = parser.getOS(); // Get operating system info (name, version)
+
+  return {
+    browser: browser.name ? `${browser.name} ${browser.version}` : "Unknown",
+    device: device.type ? device.type : "Desktop", // Default to Desktop if no type
+    os: os.name ? `${os.name} ${os.version}` : "Unknown",
+  };
 };
 
 export const authOptions = {
@@ -48,10 +66,14 @@ export const authOptions = {
         const ip = forwarded
           ? forwarded.split(/, /)[0]
           : headersList.get("host");
-        const device = headersList.get("user-agent");
 
-        const { country, city, region } = await getLocationFromIP(ip);
-        const location = `${city}, ${region}, ${country}`;
+        const userInfo = getDeviceAndBrowser(headersList);
+
+        const { country, city, region, pinCode } = await getLocationData(ip);
+        const location = `${city}, ${region}, ${pinCode}`;
+
+        const cookieStore = await cookies();
+        const source = cookieStore.get("source");
 
         const hashedPassword = hashPassword(password);
 
@@ -74,9 +96,22 @@ export const authOptions = {
 
           // Insert session data into the t_sessions table
           await db.query(
-            `INSERT INTO t_sessions (session_id, user_id, ip, location, device, last_session, expiry_date)
-  VALUES (?, ?, ?, ?, ?, ?, ?)`,
-            [sessionId, user?.id, ip, location, device, lastSession, expiryDate]
+            `INSERT INTO t_sessions (session_id, user_id, ip, location, country, region, device, os, browser, last_session, expiry_date, domain)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+              sessionId,
+              user?.id,
+              ip,
+              location,
+              country,
+              region,
+              userInfo?.device,
+              userInfo?.os,
+              userInfo?.browser,
+              lastSession,
+              expiryDate,
+              source?.value,
+            ]
           );
 
           // Simulate an authorized user with additional information
@@ -109,10 +144,14 @@ export const authOptions = {
       const forwarded = headersList.get("x-forwarded-for");
 
       const ip = forwarded ? forwarded.split(/, /)[0] : headersList.get("host");
-      const device = headersList.get("user-agent");
+      const userInfo = getDeviceAndBrowser(headersList);
 
-      const { country, city, region } = await getLocationFromIP(ip);
-      const location = `${city}, ${region}, ${country}`;
+      const { country, city, region, pinCode } = await getLocationData(ip);
+      const location = `${city}, ${region}, ${pinCode}`;
+
+      const cookieStore = await cookies();
+      const source = cookieStore.get("source");
+      console.log("Source info", source);
 
       try {
         const userExist = async (email) => {
@@ -183,9 +222,22 @@ export const authOptions = {
 
           // Insert session data into the t_sessions table
           await db.query(
-            `INSERT INTO t_sessions (session_id, user_id, ip, location, device, last_session, expiry_date)
-  VALUES (?, ?, ?, ?, ?, ?, ?)`,
-            [sessionId, userId, ip, location, device, lastSession, expiryDate]
+            `INSERT INTO t_sessions (session_id, user_id, ip, location, country, region, device, os, browser, last_session, expiry_date, domain)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+              sessionId,
+              userId,
+              ip,
+              location,
+              country,
+              region,
+              userInfo?.device,
+              userInfo?.os,
+              userInfo?.browser,
+              lastSession,
+              expiryDate,
+              source?.value,
+            ]
           );
 
           user.sessionId = sessionId;

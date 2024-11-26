@@ -1,0 +1,60 @@
+<html>
+  <head>
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+        background-color: rgba(247, 247, 247, 0.892);
+      }
+      .container {
+        background-color: white;
+        border: 1px solid gainsboro;
+        border-radius: 10px;
+        padding: 20px;
+        width: 450px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div style="text-align: center">
+        <img
+          src="https://dotix.io/assets/icons/logo.svg"
+          style="height: 100px; width: 100px; text-align: center"
+        />
+      </div>
+      <p style="font-size: 30px; font-weight: 600; text-align: center">
+        Verify Your Account
+      </p>
+      <p style="text-align: center">
+        Welcome to Dotix! You have successfully signed up. To get started,
+        please confirm your email address by clicking the button below:
+      </p>
+      <br />
+
+      <div style="text-align: center">
+        <a
+          href="${process.env.NEXTAUTH_URL}/v0/verify-email?token=${token}"
+          target="_blank"
+          style="
+            background-color: #7c3aed;
+            color: white;
+            padding: 8px 16px;
+            text-decoration: none;
+            border-radius: 6px;
+            width: 250px;
+            text-align: center;
+          "
+          >Verify Email</a
+        >
+      </div>
+
+      <br /><br />
+      <div style="text-align: center">
+        <p>If you did not register with us, please disregard this email.</p>
+        <p>Best regards,<br /></p>
+        <p>To unsubscribe from future emails, click <a href="#">here</a>.</p>
+      </div>
+    </div>
+  </body>
+</html>

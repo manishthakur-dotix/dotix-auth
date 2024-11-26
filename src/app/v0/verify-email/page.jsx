@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import axios from "axios";
 import Cookies from "js-cookie";
-import { CookingPot, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { Suspense, useEffect, useState } from "react";
@@ -31,7 +31,7 @@ const VerifyEmail = () => {
         );
         console.log(response);
         toast.success(response?.data?.msg);
-        router.push(`/v0/signin?source=${source}`);
+        router.push(`/`);
       } catch (error) {
         console.log(error);
         if (error?.response?.data?.msg === "Invalid or expired token") {
@@ -43,12 +43,12 @@ const VerifyEmail = () => {
     };
 
     verifyEmail(); // Call the function to verify email
-  }, [token]);
+  }, [token, router, source]);
 
   if (loadingPage) {
     return (
       <div className="w-[100vw] h-[100vh] flex justify-center items-center">
-        <Loader2 className="h-5 w-5 animate-spin" />
+        <Loader2 className="h-5 w-5 animate-spin text-gray-800" />
       </div>
     );
   }

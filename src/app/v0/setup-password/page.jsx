@@ -19,6 +19,7 @@ const SetUpPassword = () => {
   const source = Cookies.get("source");
 
   const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPass, setConfirmPass] = useState("");
   const [loading, setLoading] = useState(false);
@@ -32,6 +33,7 @@ const SetUpPassword = () => {
       try {
         const response = await axios.get(`/api/auth/user?token=${token}`);
         setEmail(response?.data?.email);
+        setName(response?.data?.name);
         setLoadingPage(false);
       } catch (error) {
         setLoadingPage(false);
@@ -59,6 +61,7 @@ const SetUpPassword = () => {
       const response = await axios.post(`/api/auth/reset-password`, {
         password,
         email,
+        name,
       });
       toast.success(response?.data?.msg);
 
@@ -112,7 +115,7 @@ const SetUpPassword = () => {
               alt="logo"
             />
             <h2 className="text-gray-800 text-3xl mt-6 font-semibold">
-              {email}
+              Hello, {name}
             </h2>
             <p className="mt-2 md:mt-4 text-gray-600">
               Please enter your new password
@@ -158,9 +161,15 @@ const SetUpPassword = () => {
         </div>
 
         <div className="flex items-center justify-end mt-6 text-gray-500 gap-6 text-sm pr-5">
-          <p>Privacy</p>
-          <p>Cookie Policy</p>
-          <p>Terms</p>
+          <Link href={"/privacy-policy"}>
+            <p>Privacy</p>
+          </Link>
+          <Link href={"/cookie-policy"}>
+            <p>Cookie Policy</p>
+          </Link>
+          <Link href={"/terms"}>
+            <p>Terms</p>
+          </Link>
         </div>
       </div>
     </div>

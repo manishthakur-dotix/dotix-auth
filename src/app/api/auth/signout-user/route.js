@@ -5,7 +5,6 @@ import db from "@/lib/db"; // Assuming you have a database helper file to query 
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
   const sessionId = searchParams.get("sessionId");
-  const source = searchParams.get("source");
 
   const headersList = await headers();
   const apiKey = headersList.get("x-api-key");
@@ -18,25 +17,22 @@ export async function GET(req) {
   }
 
   try {
-    if (!apiKey || !source) {
+    if (!apiKey) {
       return NextResponse.json(
-        { message: "API Key and source are required" },
+        { message: "API Key is required" },
         { status: 400 }
       );
     }
 
     // Query the t_domains table to check if the apiKey and source match
     const [domain] = await db.query(
-      `SELECT * FROM t_domains WHERE apiKey = ? AND domain = ?`,
-      [apiKey, source]
+      `SELECT * FROM t_domains WHERE apiKey = ?`,
+      [apiKey]
     );
 
     if (domain?.length === 0) {
       // If no matching record is found, return an error
-      return NextResponse.json(
-        { message: "Invalid API key or source" },
-        { status: 403 }
-      );
+      return NextResponse.json({ message: "Invalid API key" }, { status: 403 });
     }
 
     // Step 3: Check if the session exists and if it has expired

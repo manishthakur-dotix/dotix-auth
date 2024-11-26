@@ -17,7 +17,7 @@ export async function GET(req, res) {
   try {
     // Find user by token
     const [userResult] = await db.query(
-      "SELECT email FROM t_users WHERE token = ?",
+      "SELECT email, name FROM t_users WHERE token = ?",
       [token]
     );
 
@@ -26,7 +26,10 @@ export async function GET(req, res) {
     }
 
     const user = userResult[0];
-    return NextResponse.json({ email: user?.email }, { status: 200 });
+    return NextResponse.json(
+      { name: user?.name, email: user?.email },
+      { status: 200 }
+    );
   } catch (error) {
     console.error(error);
     return NextResponse.json({ msg: "Server Error" }, { status: 500 });

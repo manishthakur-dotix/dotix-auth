@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import db from "@/lib/db";
 import md5 from "md5";
+import { sendPasswordResetSuccessEmail } from "@/lib/emailServices";
 
 // Define your custom PREFIX and SUFFIX
 const PREFIX = process.env.PASS_PREFIX;
@@ -13,7 +14,7 @@ const hashPassword = (password) => {
 };
 
 export async function POST(req, res) {
-  const { email, password } = await req.json();
+  const { name, email, password } = await req.json();
 
   try {
     // Hash the password
@@ -24,6 +25,8 @@ export async function POST(req, res) {
       "UPDATE t_users SET password = ?, token = NULL WHERE email = ?",
       [hashedPassword, email]
     );
+
+    await sendPasswordResetSuccessEmail(email, name);
 
     return NextResponse.json(
       { msg: "Password has been reset successfully" },

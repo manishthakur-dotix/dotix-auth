@@ -9,7 +9,7 @@ export async function POST(req, res) {
   try {
     // Check if the user exists
     const [userResult] = await db.query(
-      "SELECT id, name FROM t_users WHERE email = ?",
+      "SELECT id, name, last_password_request FROM t_users WHERE email = ?",
       [email]
     );
 
@@ -22,12 +22,26 @@ export async function POST(req, res) {
 
     const user = userResult[0];
 
+    // Check if the user has requested a password reset in the last hour
+    const currentTime = new Date();
+    const lastRequestTime = new Date(user.last_password_request);
+    const oneHourAgo = new Date(
+      currentTime.setHours(currentTime.getHours() - 1)
+    );
+
+    if (lastRequestTime > oneHourAgo) {
+      return NextResponse.json(
+        { msg: "You can only request a password reset once every hour." },
+        { status: 429 }
+      );
+    }
+
     const token = crypto.randomBytes(32).toString("hex");
 
-    await db.query("UPDATE t_users SET token = ? WHERE email = ?", [
-      token,
-      email,
-    ]);
+    await db.query(
+      "UPDATE t_users SET token = ?, last_password_request = now() WHERE email = ?",
+      [token, email]
+    );
 
     await sendForgotPasswordEmail(email, user.name, token);
 

@@ -155,7 +155,7 @@ const Page = () => {
                   alt="google"
                   className="mr-2"
                 />{" "}
-                Sign in with google
+                Continue with google
               </Button>
 
               <Button
@@ -170,7 +170,7 @@ const Page = () => {
                   alt="google"
                   className="mr-2"
                 />{" "}
-                Sign in with Github
+                Continue with Github
               </Button>
 
               <div className="flex gap-3 items-center mt-6 justify-center">
@@ -198,9 +198,15 @@ const Page = () => {
         </div>
 
         <div className="flex items-center justify-end mt-6 text-gray-500 gap-6 text-sm pr-5">
-          <p>Privacy</p>
-          <p>Cookie Policy</p>
-          <p>Terms</p>
+          <Link href={"/privacy-policy"}>
+            <p>Privacy</p>
+          </Link>
+          <Link href={"/cookie-policy"}>
+            <p>Cookie Policy</p>
+          </Link>
+          <Link href={"/terms"}>
+            <p>Terms</p>
+          </Link>
         </div>
       </div>
     </div>
