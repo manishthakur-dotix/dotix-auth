@@ -12,7 +12,7 @@ import { signIn, signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { Suspense, useEffect, useState } from "react";
+import React, { Suspense, useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
 const SignIn = () => {
@@ -21,6 +21,8 @@ const SignIn = () => {
   const source = searchParams.get("source");
 
   const { data, status } = useSession();
+
+  console.log(source);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -33,59 +35,70 @@ const SignIn = () => {
   const [loadingPage, setLoadingPage] = useState(true);
   const [continueWithEmail, setContinueWithEmail] = useState(false);
 
+  const getDomainInfo = useCallback(async () => {
+    try {
+      console.log("called");
+
+      if (!source) {
+        setError("Invalid domain");
+        return;
+      }
+
+      const response = await axios.get(
+        `/api/auth/verify-domain?domain=${source}`
+      );
+
+      setDomainData(response?.data?.domain);
+
+      // Get theme from domain info and set it in cookies
+      const theme = response?.data?.domain?.theme || "default";
+
+      Cookies.set("source", source, { path: "/" });
+      Cookies.set("theme", theme, { path: "/" });
+      Cookies.set("callback", response?.data?.domain?.callback, {
+        path: "/",
+      });
+
+      // Apply the theme dynamically
+      document.documentElement.setAttribute("data-theme", theme);
+
+      // Sign out the user manually without redirecting
+      signOut({ redirect: false });
+
+      setLoadingPage(false);
+    } catch (error) {
+      setLoadingPage(false);
+      console.error("Domain verification error:", error);
+      if (error.response) {
+        if (error?.response?.data?.msg === "Invalid domain") {
+          setError("Invalid domain");
+        }
+        toast.error(error?.response?.data?.msg);
+      }
+    }
+  }, [source]);
+
   useEffect(() => {
+    if (status === "loading") {
+      // Wait until the session state is determined
+      return;
+    }
+
     if (status === "authenticated") {
       // If the user is authenticated and source matches, redirect to home page
       if (source === Cookies.get("source") && data?.user?.sessionId) {
         router.push("/");
-      } else {
-        // Prevent multiple sign-out calls
-        if (!signOutExecuted) {
-          setSignOutExecuted(true); // Mark that we have executed sign-out
-
-          const getDomainInfo = async () => {
-            try {
-              const response = await axios.get(
-                `/api/auth/verify-domain?domain=${source}`
-              );
-
-              setDomainData(response?.data?.domain);
-
-              // Get theme from domain info and set it in cookies
-              const theme = response?.data?.domain?.theme || "default";
-
-              Cookies.set("source", source, { path: "/" });
-              Cookies.set("theme", theme, { path: "/" });
-              Cookies.set("callback", response?.data?.domain?.callback, {
-                path: "/",
-              });
-
-              // Apply the theme dynamically
-              document.documentElement.setAttribute("data-theme", theme);
-
-              // Sign out the user manually without redirecting
-              signOut({ redirect: false });
-
-              setLoadingPage(false);
-            } catch (error) {
-              setLoadingPage(false);
-              console.log(error);
-              if (error.response) {
-                if (error?.response?.data?.msg === "Invalid domain") {
-                  setError("Invalid domain");
-                }
-                toast.error(error?.response?.data?.msg);
-              }
-            }
-          };
-
-          getDomainInfo();
-        }
+      } else if (!signOutExecuted) {
+        setSignOutExecuted(true); // Mark that we have executed sign-out
+        getDomainInfo();
       }
+    } else if (status === "unauthenticated") {
+      // Handle unauthenticated state and verify domain
+      getDomainInfo();
     } else {
-      setLoadingPage(false); // Stop loading if not authenticated
+      setLoadingPage(false);
     }
-  }, [source, data, status]); // Added `status` to dependency to monitor session state
+  }, [status, source, data, signOutExecuted, getDomainInfo, router]);
 
   const handleGoogleSignIn = async () => {
     try {
@@ -324,7 +337,7 @@ const Page = () => {
   return (
     <Suspense
       fallback={
-        <div className="w-[100%] h-[100%] flex items-center justify-center">
+        <div className="w-[100%] h-[100vh] flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-gray-800" />{" "}
         </div>
       }

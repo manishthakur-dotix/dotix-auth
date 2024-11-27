@@ -19,7 +19,7 @@ const Home = () => {
     } else {
       router.push(`/v0/signin?source=${source}`);
     }
-  }, [data, router, callback]);
+  }, [data, router, callback, source]);
 
   if (status === "loading") {
     return (
